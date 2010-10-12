@@ -1,4 +1,4 @@
-﻿Gearman C# API TODO
+Gearman C# API TODO
 ===================
 
 * Add more tests. The reflection usage in GearmanWorker would be very good to test, since it's one of the more fragile parts
