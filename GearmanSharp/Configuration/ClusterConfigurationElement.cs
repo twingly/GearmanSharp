@@ -11,7 +11,7 @@ namespace Twingly.Gearman.Configuration
             set { this["name"] = value; }
         }
 
-        [ConfigurationProperty("servers")]
+        [ConfigurationProperty("servers", IsDefaultCollection = false)]
         [ConfigurationCollection(typeof(ServersConfigurationElementCollection))]
         public ServersConfigurationElementCollection Servers
         {

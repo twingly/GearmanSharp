@@ -8,7 +8,7 @@ namespace Twingly.Gearman.Configuration
 {
     public sealed class GearmanConfigurationSection : ConfigurationSection
     {
-        [ConfigurationProperty("clusters")]
+        [ConfigurationProperty("clusters", IsDefaultCollection = false)]
         [ConfigurationCollection(typeof(ClustersConfigurationElementCollection))]
         public ClustersConfigurationElementCollection Clusters
         {

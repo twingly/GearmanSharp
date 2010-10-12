@@ -2,27 +2,12 @@ using System.Configuration;
 
 namespace Twingly.Gearman.Configuration
 {
-    [ConfigurationCollection(typeof(ClusterConfigurationElement), CollectionType = ConfigurationElementCollectionType.AddRemoveClearMap)]
+    [ConfigurationCollection(typeof(ClusterConfigurationElement), CollectionType = ConfigurationElementCollectionType.BasicMap)]
     public sealed class ClustersConfigurationElementCollection : ConfigurationElementCollection
     {
-        protected override ConfigurationElement CreateNewElement()
-        {
-            return new ClusterConfigurationElement();
-        }
-
-        protected override object GetElementKey(ConfigurationElement element)
-        {
-            return ((ClusterConfigurationElement) element).Name;
-        }
-
         public override ConfigurationElementCollectionType CollectionType
         {
-            get { return ConfigurationElementCollectionType.AddRemoveClearMap; }
-        }
-
-        protected override string ElementName
-        {
-            get { return "cluster"; }
+            get { return ConfigurationElementCollectionType.BasicMap; }
         }
 
         public ClusterConfigurationElement this[int index]
@@ -41,6 +26,21 @@ namespace Twingly.Gearman.Configuration
         public new ClusterConfigurationElement this[string name]
         {
             get { return (ClusterConfigurationElement)base.BaseGet(name); }
+        }
+
+        protected override ConfigurationElement CreateNewElement()
+        {
+            return new ClusterConfigurationElement();
+        }
+
+        protected override object GetElementKey(ConfigurationElement element)
+        {
+            return ((ClusterConfigurationElement)element).Name;
+        }
+        
+        protected override string ElementName
+        {
+            get { return "cluster"; }
         }
     }
 }
