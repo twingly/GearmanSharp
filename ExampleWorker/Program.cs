@@ -13,7 +13,7 @@ namespace ExampleWorker
             try
             {
                 var worker = new GearmanThreadedWorker();
-                var host = "10.20.10.200";
+                var host = "10.21.1.201";
                 worker.AddServer(host, 4731);
                 worker.AddServer(host, 4730);
                 worker.SetClientId("my-threaded-worker");
@@ -43,25 +43,15 @@ namespace ExampleWorker
         {
             Console.WriteLine("Got job with handle: {0}, function: {1}", job.JobHandle, job.FunctionName);
             
-            try
-            {
-                if (job.FunctionArgument.Length == 0)
-                    job.Fail();
+            var str = job.FunctionArgument;
 
-                var str = job.FunctionArgument;
+            var strArray = str.ToCharArray();
+            Array.Reverse(strArray);
+            var reversedStr = new string(strArray);
 
-                var strArray = str.ToCharArray();
-                Array.Reverse(strArray);
-                var reversedStr = new string(strArray);
+            Console.WriteLine("  Reversed: {0}", reversedStr);
 
-                Console.WriteLine("  Reversed: {0}", reversedStr);
-
-                job.Complete(reversedStr);
-            }
-            catch (Exception)
-            {
-                job.Fail();
-            }
+            job.Complete(reversedStr);
         }
     }
 }
