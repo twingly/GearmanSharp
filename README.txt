@@ -11,7 +11,7 @@ updates from the worker to client(s) is not implemented.
 Examples
 --------
 For more examples, check:
-https://github.com/twingly/GearmanSharp/blob/master/GearmanSharp/Examples/Example.cs
+http://github.com/twingly/GearmanSharp/blob/master/GearmanSharp/Examples/Example.cs
 
 
 * Client examples
