@@ -85,7 +85,7 @@ namespace Twingly.Gearman.Examples
             worker.AddServer("10.0.0.2", 4730);
             worker.SetClientId("my-client");
 
-            worker.RegisterFunction<IList<string>, IList<OEmbed>>("GetOEmbeds", ReceiveOembedsFunction,
+            worker.RegisterFunction<IList<string>, IList<OEmbed>>("GetOEmbeds", GetOembedsFunction,
                 Serializers.JsonDeserialize<IList<string>>, Serializers.JsonSerialize<IList<OEmbed>>);
             
             // start worker thread
@@ -97,7 +97,7 @@ namespace Twingly.Gearman.Examples
             worker.StopWorkLoop();
         }
 
-        public void ReceiveOembedsFunction(IGearmanJob<IList<string>, IList<OEmbed>> job)
+        public void GetOembedsFunction(IGearmanJob<IList<string>, IList<OEmbed>> job)
         {
             var urls = job.FunctionArgument;
             var oembeds = new List<OEmbed>();
