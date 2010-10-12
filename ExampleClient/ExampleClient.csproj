@@ -55,7 +55,7 @@
   <ItemGroup>
     <ProjectReference Include="..\GearmanSharp\GearmanSharp.csproj">
       <Project>{8B999000-26B7-4E65-9361-92785B249350}</Project>
-      <Name>gearman-sharp</Name>
+      <Name>GearmanSharp</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

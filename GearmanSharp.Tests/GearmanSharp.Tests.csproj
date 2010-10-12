@@ -61,15 +61,15 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\GearmanSharp\GearmanSharp.csproj">
-      <Project>{8B999000-26B7-4E65-9361-92785B249350}</Project>
-      <Name>gearman-sharp</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="TestConfiguration.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GearmanSharp\GearmanSharp.csproj">
+      <Project>{8B999000-26B7-4E65-9361-92785B249350}</Project>
+      <Name>GearmanSharp</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
