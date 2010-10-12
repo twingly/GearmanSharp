@@ -1,0 +1,40 @@
+﻿Gearman C# API TODO
+===================
+
+* Add more tests. The reflection usage in GearmanWorker would be very good to test, since it's one of the more fragile parts
+  (finding the constructor for GearmanJob<TArg, TResult> for example).
+
+* Add support for retrying jobs. Not exactly sure how this is supposed to be handled with background jobs.
+  http://search.cpan.org/~bradfitz/Gearman/lib/Gearman/Task.pm
+
+* Improve heuristic for sleeping when there are no jobs (in GearmanThreadedWorker). We could have some kind of increase
+  in sleep time for each NO_JOB that we get, so we start with a few milliseconds and increase up-to say a second or two
+  when we haven't gotten any jobs for a good while.
+  
+  An even better solution would be to implement support for PRE_SLEEP, but that's probably a lot more work.
+
+* Add option to specify ReceiveTimeout on GearmanConnection when submitting foreground jobs. It might be that it's not
+  possible to handle timeouts well, because the socket.Receive() call will throw an exception after the timeout and I'm
+  not sure if the socket is usable after that.
+
+* Implement/Test WORK_DATA handling between worker and client.
+
+* Implement WORK_WARNING
+
+* Implement GRAB_JOB_UNIQ / JOB_ASSIGN_UNIQ
+
+* Implement CANT_DO
+
+* Change GearmanClient to take a Task instead of all the arguments on SubmitJob/SubmitBackgroundJob. It will also make
+  the API more similar to other language APIs.
+
+* Refactor how Connection/Protocol classes work. Perhaps the Client/WorkerProtocol classes could inherit from Connection?
+  There's is a 1-to-1 relationship between a protocol and connection instance, so it could make sense. We would however need
+  figure out how to share the connection manager, but still be able to create different protocol classes depending on if we're
+  the worker or client.
+
+* Refactor to remove all the request and packet classes and add their functionality to the protocol classes (or perhaps the
+  connection class) as functions instead. We've only implemented some of the requests and responses, but it's already way
+  too many classes and it requires too much code to add a new request/response. (We've taken OO too far here.)
+
+* Rake with Albacore for building and testing.
