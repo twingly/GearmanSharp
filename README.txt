@@ -50,7 +50,7 @@ https://github.com/twingly/GearmanSharp/blob/master/GearmanSharp/Examples/Exampl
         Serializers.JsonSerialize<IList<OEmbed>>);
     
     // The function definition and GearmanJob:
-    public void ReceiveOembedsFunction(IGearmanJob<IList<string>, IList<OEmbed>> job)
+    public void GetOEmbeds(IGearmanJob<IList<string>, IList<OEmbed>> job)
     {
         // The FunctionArgument of the job will be an IList<string>
         IList<string> urls = job.FunctionArgument;
