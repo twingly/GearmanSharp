@@ -1,0 +1,7 @@
+*resharper.user
+_ReSharper.*/
+[Bb]in/
+[Oo]bj/
+*.suo
+*.sln.cache
+*.user
