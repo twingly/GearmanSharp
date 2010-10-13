@@ -1,15 +1,22 @@
-GearmanSharp
-============
 GearmanSharp is a C# API for Gearman (http://www.gearman.org).
 
-Not everything in the Gearman protocol are supported yet, many things are
-missing, but there should be enough to build a basic client and/or worker.
-For example, both background and foreground jobs are supported, but continous
-updates from the worker to client(s) is not implemented.
+
+Description
+===========
+GearmanSharp is a C# API for Gearman. Currently it only provides the basic
+parts of the protocol, but there is enough to build a basic client and worker.
+In the future, we hope it will provide a more complete implementation of the
+protocol. It requires .NET 3.5.
+
+
+License
+=======
+Copyright 2010 Twingly AB. GearmanSharps is provided under the three-clause
+BSD License. See the included LICENSE.txt file for specifics.
 
 
 Examples
---------
+========
 For more examples, check:
 http://github.com/twingly/GearmanSharp/blob/master/GearmanSharp/Examples/Example.cs
 
