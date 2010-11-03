@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using Twingly.Gearman.Exceptions;
 using Twingly.Gearman.Packets;
 
@@ -17,8 +15,7 @@ namespace Twingly.Gearman
 
         private readonly TimeSpan _deadServerRetryInterval = TimeSpan.FromSeconds(60); // TODO: make configurable
 
-        private Socket _socket;
-        private BufferedStream _bufferedStream;
+        private ISocket _socket;
         private bool _isDead;
         private DateTime _nextRetry;
 
@@ -71,12 +68,12 @@ namespace Twingly.Gearman
 
             Close();
 
-            _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+            _socket = new SocketAdapter(new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
                       {
                           NoDelay = true,
                           ReceiveTimeout = ReceiveTimeout,
                           SendTimeout = SendTimeout
-                      };
+                      });
             
             _socket.Connect(Host, Port);
             if (!_socket.Connected)
@@ -88,7 +85,6 @@ namespace Twingly.Gearman
             // in a new GearmanConnectionException or such? Could be quite useful to be able to catch a failure to connect
             // instead of something happening just outside of the connection phase. And "GearmanApiException" doesn't really match here.
             
-            _bufferedStream = new BufferedStream(new NetworkStream(_socket, false), 16*1024);
             _isDead = false;
         }
 
@@ -144,27 +140,11 @@ namespace Twingly.Gearman
 
         private void Close()
         {
-            if (_bufferedStream != null)
-            {
-                try
-                {
-                    _bufferedStream.Close();
-                }
-                catch (Exception)
-                {
-                    //logger.Error("Error closing stream: " + this.EndPoint, e);
-                }
-                finally
-                {
-                    _bufferedStream = null;
-                }
-            }
-
             if (_socket != null)
             {
                 try
                 {
-                    _socket.Shutdown(SocketShutdown.Both);
+                    _socket.Shutdown();
                     _socket.Close();
                 }
                 catch (Exception)
@@ -182,7 +162,7 @@ namespace Twingly.Gearman
         /// </summary>
         public bool IsConnected()
         {
-            return _socket != null && _socket.Connected && _bufferedStream != null && _bufferedStream.CanRead;
+            return _socket != null && _socket.Connected;
         }
     }
 }
