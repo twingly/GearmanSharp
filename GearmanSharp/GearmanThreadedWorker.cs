@@ -44,6 +44,7 @@ namespace Twingly.Gearman
 
                     if (aliveConnections.Count() < 1)
                     {
+                        // No servers available, sleep for a while and try again later
                         _resetEvent.WaitOne(_NO_SERVERS_SLEEP_TIME, false);
                         _resetEvent.Reset();
                         noJobCount = 0;
