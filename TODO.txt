@@ -1,5 +1,7 @@
 Gearman C# API TODO
 ===================
+* Logging. Preferably without relying on a single logging library such as log4net or nlog, since that should be the user's
+  choice.
 
 * Add more tests. The reflection usage in GearmanWorker would be very good to test, since it's one of the more fragile parts
   (finding the constructor for GearmanJob<TArg, TResult> for example).
@@ -38,3 +40,6 @@ Gearman C# API TODO
   too many classes and it requires too much code to add a new request/response. (We've taken OO too far here.)
 
 * Rake with Albacore for building and testing.
+
+* Add the raw job argument byte[] to IGearmanJob and GearmanJob, so one can always get the job without. It's good when you
+  want to log what job went wrong, but if the serializer has serialized it as an object, you don't have the raw byte[].
