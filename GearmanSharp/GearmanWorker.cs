@@ -101,7 +101,7 @@ namespace Twingly.Gearman
             return false;
         }
 
-        protected new virtual void OnConnectionConnected(IGearmanConnection connection)
+        protected override void OnConnectionConnected(IGearmanConnection connection)
         {
             RegisterAllFunctions(connection);
             SetClientId(connection);
