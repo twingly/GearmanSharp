@@ -11,7 +11,7 @@ namespace Twingly.Gearman.Tests
     [TestFixture]
     public class GearmanConnectionTests
     {
-        private string _gearmanHost = "10.21.1.201";
+        private string _gearmanHost = "127.0.0.1";
         private int _gearmanPort = 4730;
 
         [Test]

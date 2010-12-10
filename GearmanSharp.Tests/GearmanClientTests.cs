@@ -13,7 +13,7 @@ namespace Twingly.Gearman.Tests
         public void can_submit_backgroundjob()
         {
             var client = new GearmanClient();
-            client.AddServer("10.21.1.201");
+            client.AddServer("127.0.0.1");
             var handle = client.SubmitBackgroundJob("reverse", Encoding.ASCII.GetBytes("Hello World"));
 
             Assert.IsNotNull(handle);
