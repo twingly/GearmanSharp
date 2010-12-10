@@ -104,10 +104,6 @@ namespace Twingly.Gearman
                 // Try to reconnect if they're not connected and not dead, or if all servers are dead, we will try to reconnect them anyway.
                 if (!connection.IsConnected() && (!connection.IsDead() || isAllDead))
                 {
-                    // Should we catch exception here? What is the typical use case of this function?
-                    // Perhaps it's more useful to actually catch (all?) exceptions here so that a worker or
-                    // client can have one of many connections fail. If this will throw every time a server
-                    // goes down, doesn't that defeat the point of having multiple servers to gain availability?
                     try
                     {
                         connection.Connect();
@@ -117,10 +113,10 @@ namespace Twingly.Gearman
                         // client and the worker, where the worker always registers all functions when connecting?
                         // Could that work?
                     }
-                    catch (Exception)
+                    catch (GearmanConnectionException)
                     {
-                        // Perhaps wrap all connection related exceptions in so we can catch something
-                        // more specific?
+                        // Is it enough to catch GearmanConnectionException?
+                        connection.MarkAsDead();
                         continue;
                     }
                 }

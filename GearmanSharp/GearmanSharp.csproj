@@ -56,6 +56,7 @@
     <Compile Include="Configuration\ServerConfigurationElement.cs" />
     <Compile Include="Configuration\ServersConfigurationElementCollection.cs" />
     <Compile Include="Examples\Example.cs" />
+    <Compile Include="Exceptions\GearmanConnectionException.cs" />
     <Compile Include="Exceptions\GearmanException.cs" />
     <Compile Include="Exceptions\GearmanFunctionInternalException.cs" />
     <Compile Include="Exceptions\GearmanServerException.cs" />

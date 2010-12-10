@@ -54,9 +54,21 @@ namespace Twingly.Gearman
             if (resultDeserializer == null)
                 throw new ArgumentNullException("resultDeserializer");
 
-            var protocol = new GearmanClientProtocol(GetRandomConnection());
-            var result = protocol.SubmitJob(functionName, argumentSerializer(functionArgument), uniqueId, priority);
-            return result == null ? null : resultDeserializer(result);
+            foreach (var connection in GetAliveConnections())
+            {
+                try
+                {
+                    var protocol = new GearmanClientProtocol(connection);
+                    var result = protocol.SubmitJob(functionName, argumentSerializer(functionArgument), uniqueId, priority);
+                    return result == null ? null : resultDeserializer(result);
+                }
+                catch (GearmanConnectionException)
+                {
+                    connection.MarkAsDead();
+                }
+            }
+
+            throw new NoServerAvailableException("Failed to submit background job, no job server available");
         }
 
         public string SubmitBackgroundJob(string functionName, byte[] functionArgument)
@@ -83,18 +95,20 @@ namespace Twingly.Gearman
             if (argumentSerializer == null)
                 throw new ArgumentNullException("argumentSerializer");
 
-            var protocol = new GearmanClientProtocol(GetRandomConnection());
-            return protocol.SubmitBackgroundJob(functionName, argumentSerializer(functionArgument), uniqueId, priority);
-        }
+            foreach (var connection in GetAliveConnections())
+            {
+                try
+                {
+                    var protocol = new GearmanClientProtocol(connection);
+                    return protocol.SubmitBackgroundJob(functionName, argumentSerializer(functionArgument), uniqueId, priority);
+                }
+                catch (GearmanConnectionException)
+                {
+                    connection.MarkAsDead();
+                }
+            }
 
-        private IGearmanConnection GetRandomConnection()
-        {
-            var aliveConnections = GetAliveConnections();
-
-            if (aliveConnections.Count() < 1)
-                throw new NoServerAvailableException("No alive job server available");
-
-            return aliveConnections.First();
+            throw new NoServerAvailableException("Failed to submit background job, no job server available");
         }
         
         private static string CreateRandomUniqueId()

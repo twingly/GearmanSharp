@@ -54,7 +54,7 @@ namespace Twingly.Gearman
             return _isDead;
         }
 
-        private void SetAsDead()
+        public void MarkAsDead()
         {
             Disconnect();
             _isDead = true;
@@ -68,22 +68,26 @@ namespace Twingly.Gearman
 
             Close();
 
-            _socket = new SocketAdapter(new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
-                      {
-                          NoDelay = true,
-                          ReceiveTimeout = ReceiveTimeout,
-                          SendTimeout = SendTimeout
-                      });
-            
-            _socket.Connect(Host, Port);
+            try
+            {
+                _socket = new SocketAdapter(new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+                {
+                    NoDelay = true,
+                    ReceiveTimeout = ReceiveTimeout,
+                    SendTimeout = SendTimeout
+                });
+
+                _socket.Connect(Host, Port);
+            }
+            catch (Exception ex)
+            {
+                throw new GearmanConnectionException("Could not connect", ex);
+            }
+
             if (!_socket.Connected)
             { 
-                SetAsDead();
-                throw new GearmanApiException("Could not connect");
+                throw new GearmanConnectionException("Socket not connected");
             }
-            // TODO: Instead of using the GearmanApiException here, should we perhaps add try catch and wrap any exceptions
-            // in a new GearmanConnectionException or such? Could be quite useful to be able to catch a failure to connect
-            // instead of something happening just outside of the connection phase. And "GearmanApiException" doesn't really match here.
             
             _isDead = false;
         }
@@ -101,17 +105,18 @@ namespace Twingly.Gearman
             }
             catch (Exception e)
             {
-                new GearmanApiException("Unable to send packet", e);
+                new GearmanConnectionException("Unable to send packet", e);
             }
         }
 
         public IResponsePacket GetNextPacket()
         {
+            var header = new byte[12];
+            var packetMagic = new byte[4];
+            byte[] packetData;
             try
             {
-                var header = new byte[12];
                 _socket.Receive(header, 12, SocketFlags.None);
-                var packetMagic = new byte[4];
                 Array.Copy(header, 0, packetMagic, 0, 4);
 
                 if (!packetMagic.SequenceEqual(ResponsePacket.Magic))
@@ -120,7 +125,7 @@ namespace Twingly.Gearman
                 var packetType = (PacketType)IPAddress.NetworkToHostOrder(BitConverter.ToInt32(header, 4));
                 int packetSize = IPAddress.NetworkToHostOrder(BitConverter.ToInt32(header, 8));
 
-                var packetData = new byte[packetSize];
+                packetData = new byte[packetSize];
                 if (packetSize > 0)
                 {
                     int bytesRead = 0;
@@ -134,7 +139,7 @@ namespace Twingly.Gearman
             }
             catch (Exception e)
             {
-                throw new GearmanApiException("Error reading data from socket", e);
+                throw new GearmanConnectionException("Error reading data from socket", e);
             }
         }
 

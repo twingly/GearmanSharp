@@ -17,5 +17,6 @@ namespace Twingly.Gearman
         int Port { get; }
 
         bool IsDead(); // A dead connection should not be retried. When it's time to retry, it won't be dead.
+        void MarkAsDead();
     }
 }

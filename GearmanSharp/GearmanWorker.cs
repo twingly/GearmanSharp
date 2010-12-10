@@ -85,20 +85,15 @@ namespace Twingly.Gearman
         {
             var aliveConnections = GetAliveConnections();
 
-            // TODO: What do we do if there are no alive servers?
-            // When we call this function we only want to do one job and then it's interesting to know
-            // if we didn't do any work because there weren't any, or because we didn't have any connections.
-            if (aliveConnections.Count() < 1)
-            {
-                throw new NoServerAvailableException("No job servers");
-            }
-
             if (aliveConnections.Count() > 0)
             {
                 return Work(aliveConnections.First());
             }
 
-            return false;
+            // What do we do if there are no alive servers?
+            // When we call this function we only want to do one job and then it's interesting to know
+            // if we didn't do any work because there weren't any, or because we didn't have any connections.
+            throw new NoServerAvailableException("No job servers");
         }
 
         protected override void OnConnectionConnected(IGearmanConnection connection)
@@ -109,7 +104,14 @@ namespace Twingly.Gearman
 
         private void SetClientId(IGearmanConnection connection)
         {
-            new GearmanWorkerProtocol(connection).SetClientId(_clientId);
+            try
+            {
+                new GearmanWorkerProtocol(connection).SetClientId(_clientId);
+            }
+            catch (GearmanConnectionException)
+            {
+                connection.MarkAsDead();
+            }
         }
 
         private void RegisterAllFunctions(IGearmanConnection connection)
@@ -122,7 +124,14 @@ namespace Twingly.Gearman
 
         private static void RegisterFunction(IGearmanConnection connection, string functionName)
         {
-            new GearmanWorkerProtocol(connection).CanDo(functionName);
+            try
+            {
+                new GearmanWorkerProtocol(connection).CanDo(functionName);
+            }
+            catch (GearmanConnectionException)
+            {
+                connection.MarkAsDead();
+            }
         }
         
         private void AddFunction<TArg, TResult>(string functionName, GearmanJobFunction<TArg, TResult> function,
@@ -156,18 +165,24 @@ namespace Twingly.Gearman
 
         protected bool Work(IGearmanConnection connection)
         {
-            var protocol = new GearmanWorkerProtocol(connection);
-            var jobAssignment = protocol.GrabJob();
-
-            if (jobAssignment == null)
-                return false;
-
-            if (!_functionInformation.ContainsKey(jobAssignment.FunctionName))
-                throw new GearmanApiException(String.Format("Received work for unknown function {0}", jobAssignment.FunctionName));
-
             try
             {
-                return CallFunction(protocol, jobAssignment);
+                var protocol = new GearmanWorkerProtocol(connection);
+                var jobAssignment = protocol.GrabJob(); // This can throw GearmanConnectionException, how do we handle that?
+
+                if (jobAssignment == null)
+                    return false;
+
+                if (!_functionInformation.ContainsKey(jobAssignment.FunctionName))
+                    throw new GearmanApiException(String.Format("Received work for unknown function {0}", jobAssignment.FunctionName));
+
+                CallFunction(protocol, jobAssignment);
+                return true;
+            }
+            catch (GearmanConnectionException)
+            {
+                connection.MarkAsDead();
+                return false;
             }
             catch (Exception)
             {
@@ -176,14 +191,13 @@ namespace Twingly.Gearman
                 // "A worker disconnect with no response message is currently how the server's retry behavior is triggered."
                 // http://groups.google.com/group/gearman/browse_thread/thread/5c91acc31bd10688/529e586405ed37fe
                 // 
-                // We can't send Complete or Fail for the job, because that would cause the job to be "done".
+                // We can't send Complete or Fail for the job, because that would cause the job to be "done" and the server wouldn't retry.
                 connection.Disconnect();
                 throw;
             }
-            
         }
 
-        private bool CallFunction(GearmanWorkerProtocol protocol, JobAssignment jobAssignment)
+        private void CallFunction(GearmanWorkerProtocol protocol, JobAssignment jobAssignment)
         {
             var functionInformation = _functionInformation[jobAssignment.FunctionName];
 
@@ -208,7 +222,6 @@ namespace Twingly.Gearman
             try
             {
                 functionInformation.Function.DynamicInvoke(job);
-                return true;
             }
             catch (MemberAccessException ex)
             {
