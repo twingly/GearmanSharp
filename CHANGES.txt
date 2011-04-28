@@ -1,4 +1,4 @@
-v0.2.0, 2011-xx-xx -- Breaking API improvements
+v0.2.0, 2011-04-28 -- Breaking API improvements
  * Changed IGearmanJob to have an instance of JobAssigment instead of
    separate properties for JobHandle and FunctionName, to make the raw
    byte[] FunctionArgument available. This is a breaking change.
