@@ -11,8 +11,14 @@ protocol. It requires .NET 3.5.
 
 License
 =======
-Copyright 2010 Twingly AB. GearmanSharps is provided under the three-clause
+Copyright 2010 Twingly AB. GearmanSharp is provided under the three-clause
 BSD License. See the included LICENSE.txt file for specifics.
+
+
+Source code
+===========
+The source code is located on GitHub at:
+http://github.com/twingly/GearmanSharp/
 
 
 Examples
