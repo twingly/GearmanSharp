@@ -4,6 +4,10 @@ using System.Linq.Expressions;
 
 namespace Twingly.Gearman
 {
+    public delegate void GearmanJobFunction<TArg, TResult>(IGearmanJob<TArg, TResult> job)
+        where TArg : class
+        where TResult : class;
+    
     public enum GearmanJobPriority
     {
         High = 1,
@@ -19,8 +23,7 @@ namespace Twingly.Gearman
         private readonly DataDeserializer<TArg> _deserializer;
         private readonly GearmanWorkerProtocol _protocol;
 
-        public string JobHandle { get; protected set; }
-        public string FunctionName { get; protected set; }
+        public JobAssignment Info { get; protected set; }
         public TArg FunctionArgument { get; protected set; }
 
         public GearmanJob(GearmanWorkerProtocol protocol, JobAssignment jobAssignment,
@@ -29,24 +32,23 @@ namespace Twingly.Gearman
             _serializer = resultSerializer;
             _deserializer = argumentDeserializer;
             _protocol = protocol;
-            JobHandle = jobAssignment.JobHandle;
-            FunctionName = jobAssignment.FunctionName;
+            Info = jobAssignment;
             FunctionArgument = _deserializer(jobAssignment.FunctionArgument);
         }
 
         public void Complete()
         {
-            _protocol.WorkComplete(JobHandle);
+            _protocol.WorkComplete(Info.JobHandle);
         }
 
         public void Complete(TResult result)
         {
-            _protocol.WorkComplete(JobHandle, _serializer(result));
+            _protocol.WorkComplete(Info.JobHandle, _serializer(result));
         }
 
         public void Fail()
         {
-            _protocol.WorkFail(JobHandle);
+            _protocol.WorkFail(Info.JobHandle);
         }
     }
 }

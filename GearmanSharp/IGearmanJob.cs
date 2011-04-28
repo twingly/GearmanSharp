@@ -5,8 +5,11 @@ namespace Twingly.Gearman
 {
     public interface IGearmanJob<TArg, TResult>
     {
-        string JobHandle { get; }
-        string FunctionName { get; }
+        JobAssignment Info { get; }
+
+        /// <summary>
+        /// The deserialized function argument.
+        /// </summary>
         TArg FunctionArgument { get; }
 
         void Complete();

@@ -9,10 +9,10 @@ namespace Twingly.Gearman
     public class GearmanThreadedWorker : GearmanWorker
     {
         private const int _NO_JOB_COUNT_BEFORE_SLEEP = 10;
-        private const int _NO_JOB_SLEEP_TIME = 1000;
-        private const int _NO_SERVERS_SLEEP_TIME = 1000;
+        private const int _NO_JOB_SLEEP_TIME_MS = 1000;
+        private const int _NO_SERVERS_SLEEP_TIME_MS = 1000;
 
-        private volatile bool _shouldQuit = false;
+        protected volatile bool ContinueWorking = false;
         private readonly ManualResetEvent _resetEvent = new ManualResetEvent(false);
         private readonly Thread _workLoopThread;
 
@@ -33,10 +33,39 @@ namespace Twingly.Gearman
             _workLoopThread = new Thread(WorkLoopThreadProc);
         }
 
+        public void StartWorkLoop()
+        {
+            ContinueWorking = true;
+            _resetEvent.Reset();
+            _workLoopThread.Start();
+        }
+
+        public void StopWorkLoop()
+        {
+            ContinueWorking = false;
+            _resetEvent.Set();
+            if (_workLoopThread.IsAlive)
+            {
+                _workLoopThread.Join();
+            }
+        }
+
+        /// <summary>
+        /// Called when a job function throws an exception. Does nothing and returns false, to not abort the work loop.
+        /// </summary>
+        /// <param name="exception">The exception thrown by the job function.</param>
+        /// <param name="jobAssignment">The job assignment that the job function got.</param>
+        /// <returns>Return true if it should throw, or false if it should not throw after the return.</returns>
+        protected override bool OnJobException(Exception exception, JobAssignment jobAssignment)
+        {
+            // Don't throw the exception, as that would abort the work loop.
+            return false;
+        }
+
         private void WorkLoopThreadProc()
         {
             var noJobCount = 0;
-            while (!_shouldQuit)
+            while (ContinueWorking)
             {
                 try
                 {
@@ -45,7 +74,7 @@ namespace Twingly.Gearman
                     if (aliveConnections.Count() < 1)
                     {
                         // No servers available, sleep for a while and try again later
-                        _resetEvent.WaitOne(_NO_SERVERS_SLEEP_TIME, false);
+                        _resetEvent.WaitOne(_NO_SERVERS_SLEEP_TIME_MS, false);
                         _resetEvent.Reset();
                         noJobCount = 0;
                     }
@@ -53,7 +82,7 @@ namespace Twingly.Gearman
                     {
                         foreach (var connection in aliveConnections)
                         {
-                            if (_shouldQuit)
+                            if (!ContinueWorking)
                             {
                                 break;
                             }
@@ -64,7 +93,7 @@ namespace Twingly.Gearman
 
                         if (noJobCount >= _NO_JOB_COUNT_BEFORE_SLEEP)
                         {
-                            _resetEvent.WaitOne(_NO_JOB_SLEEP_TIME, false);
+                            _resetEvent.WaitOne(_NO_JOB_SLEEP_TIME_MS, false);
                             _resetEvent.Reset();
                             noJobCount = 0;
                         }
@@ -72,27 +101,9 @@ namespace Twingly.Gearman
                 }
                 catch (Exception)
                 {
-                    _shouldQuit = true;
+                    ContinueWorking = false;
                     throw;
                 }
-
-            }
-        }
-
-        public void StartWorkLoop()
-        {
-            _shouldQuit = false;
-            _resetEvent.Reset();
-            _workLoopThread.Start();
-        }
-
-        public void StopWorkLoop()
-        {
-            _shouldQuit = true;
-            _resetEvent.Set();
-            if (_workLoopThread.IsAlive)
-            {
-                _workLoopThread.Join();
             }
         }
     }

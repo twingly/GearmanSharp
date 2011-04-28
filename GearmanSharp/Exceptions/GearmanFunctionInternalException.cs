@@ -7,13 +7,32 @@ using System.Text;
 namespace Twingly.Gearman.Exceptions
 {
     /// <summary>
-    /// Represents unexpected errors/exceptions that occured in a Gearman function when processing a Gearman job.
+    /// Represents an exception that occured in a registered job function when processing a Gearman job.
     /// </summary>
     public class GearmanFunctionInternalException : GearmanException
     {
-        public GearmanFunctionInternalException() { }
-        public GearmanFunctionInternalException(string message) : base(message) { }
-        public GearmanFunctionInternalException(string message, Exception innerException) : base(message, innerException) { }
-        protected GearmanFunctionInternalException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+        public JobAssignment JobAssignment { get; set; }
+
+        public GearmanFunctionInternalException(JobAssignment jobAssignment)
+        {
+            JobAssignment = jobAssignment;
+        }
+
+        public GearmanFunctionInternalException(JobAssignment jobAssignment, string message)
+            : base(message)
+        {
+            JobAssignment = jobAssignment;
+        }
+
+        public GearmanFunctionInternalException(JobAssignment jobAssignment, string message, Exception innerException)
+            : base(message, innerException)
+        {
+            JobAssignment = jobAssignment;
+        }
+
+        protected GearmanFunctionInternalException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+        }
     }
 }
