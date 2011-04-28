@@ -73,6 +73,7 @@
     <Compile Include="GearmanThreadedWorker.cs" />
     <Compile Include="GearmanWorkerProtocol.cs" />
     <Compile Include="ISocket.cs" />
+    <Compile Include="JobAssignment.cs" />
     <Compile Include="Packets\Requests\SetClientIdRequest.cs" />
     <Compile Include="IGearmanConnection.cs" />
     <Compile Include="IGearmanConnectionFactory.cs" />

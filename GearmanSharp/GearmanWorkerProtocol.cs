@@ -5,13 +5,6 @@ using Twingly.Gearman.Packets;
 
 namespace Twingly.Gearman
 {
-    public class JobAssignment
-    {
-        public string JobHandle;
-        public string FunctionName;
-        public byte[] FunctionArgument;
-    }
-
     public class GearmanWorkerProtocol
     {
         private readonly IGearmanConnection _connection;
