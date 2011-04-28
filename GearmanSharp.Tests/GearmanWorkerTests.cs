@@ -37,8 +37,8 @@ namespace Twingly.Gearman.Tests
 
             GearmanJobFunction<byte[], byte[]> func = delegate(IGearmanJob<byte[], byte[]> job) {
                 Assert.IsNotNull(job);
-                Assert.AreEqual(jobHandle, job.JobHandle);
-                Assert.AreEqual(functionName, job.FunctionName);
+                Assert.AreEqual(jobHandle, job.Info.JobHandle);
+                Assert.AreEqual(functionName, job.Info.FunctionName);
                 Assert.AreEqual(functionArgument, job.FunctionArgument);
             };
 

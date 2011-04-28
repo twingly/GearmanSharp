@@ -41,7 +41,7 @@ namespace ExampleWorker
 
         private static void DoReverse(IGearmanJob<string, string> job)
         {
-            Console.WriteLine("Got job with handle: {0}, function: {1}", job.JobHandle, job.FunctionName);
+            Console.WriteLine("Got job with handle: {0}, function: {1}", job.Info.JobHandle, job.Info.FunctionName);
             
             var str = job.FunctionArgument;
 
