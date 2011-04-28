@@ -13,7 +13,7 @@ namespace Twingly.Gearman
         public const int DEFAULT_SEND_TIMEOUT_MILLISECONDS = 3*1000;
         public const int DEFAULT_RECEIVE_TIMEOUT_MILLISECONDS = 60*1000;
 
-        private readonly TimeSpan _deadServerRetryInterval = TimeSpan.FromSeconds(60); // TODO: make configurable
+        private readonly TimeSpan _deadServerRetryInterval = TimeSpan.FromSeconds(10); // TODO: make configurable
 
         private ISocket _socket;
         private bool _isDead;
