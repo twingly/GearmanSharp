@@ -68,7 +68,7 @@ namespace Twingly.Gearman
                 }
             }
 
-            throw new NoServerAvailableException("Failed to submit background job, no job server available");
+            throw new NoServerAvailableException("Failed to submit job, no job server available");
         }
 
         public string SubmitBackgroundJob(string functionName, byte[] functionArgument)
