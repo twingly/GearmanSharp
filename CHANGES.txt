@@ -1,0 +1,19 @@
+v0.2.0, 2011-xx-xx -- Breaking API improvements
+ * Changed IGearmanJob to have an instance of JobAssigment instead of
+   separate properties for JobHandle and FunctionName, to make the raw
+   byte[] FunctionArgument available. This is a breaking change.
+ 
+ * Added protected bool OnJobException(Exception, JobAssignment) to
+   GearmanWorker to make it possible to handle an exception thrown by a
+   job function. If it returns true, then the a wrapping
+   GearmanFunctionInternalException will be thrown. If false, the Work
+   method will just return false. In GearmanWorker this method returns 
+   true. GearmanThreadedWorker overrides this method and returns false,
+   to avoid having the work loop stopped. Regardless of what you
+   return, the worker will disconnect from the server. If you don't
+   want the disconnect to happen, you need to catch the exception in
+   the job function.
+
+v0.1.1, 2010-12-10 -- First real version
+
+v0.1.0, 2010-10-xx -- First public code

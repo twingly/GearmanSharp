@@ -40,6 +40,3 @@ Gearman C# API TODO
   too many classes and it requires too much code to add a new request/response. (We've taken OO too far here.)
 
 * Rake with Albacore for building and testing.
-
-* Add the raw job argument byte[] to IGearmanJob and GearmanJob, so one can always get the job without. It's good when you
-  want to log what job went wrong, but if the serializer has serialized it as an object, you don't have the raw byte[].
