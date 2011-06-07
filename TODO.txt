@@ -35,8 +35,4 @@ Gearman C# API TODO
   figure out how to share the connection manager, but still be able to create different protocol classes depending on if we're
   the worker or client.
 
-* Refactor to remove all the request and packet classes and add their functionality to the protocol classes (or perhaps the
-  connection class) as functions instead. We've only implemented some of the requests and responses, but it's already way
-  too many classes and it requires too much code to add a new request/response. (We've taken OO too far here.)
-
 * Rake with Albacore for building and testing.
