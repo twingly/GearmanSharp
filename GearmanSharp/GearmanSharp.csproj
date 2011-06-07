@@ -69,6 +69,7 @@
     <Compile Include="GearmanConnectionManager.cs" />
     <Compile Include="GearmanJob.cs" />
     <Compile Include="GearmanJobRequest.cs" />
+    <Compile Include="GearmanProtocol.cs" />
     <Compile Include="GearmanWorker.cs" />
     <Compile Include="Exceptions\NoServerAvailableException.cs" />
     <Compile Include="GearmanThreadedWorker.cs" />
