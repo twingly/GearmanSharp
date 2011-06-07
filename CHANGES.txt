@@ -1,3 +1,13 @@
+v0.3.0, 2011-06-07 -- Status support. Breaking API improvements.
+ * Added support for GET_STATUS, STATUS_RES and WORK_STATUS packets.
+ * GearmanClient.SubmitBackgroundJob now returns an instance of
+   GearmanJobRequest, which you can use to get the status (you need to
+   send the GET_STATUS request to the same server as the job is on,
+   so we store the connection in the GearmanJobRequest).
+ * Removed all specific classes for the different types of packets,
+   and added a new class, GearmanProtocol, with static methods for
+   packing/unpacking the requests/responses.
+
 v0.2.0, 2011-04-28 -- Breaking API improvements
  * Changed IGearmanJob to have an instance of JobAssigment instead of
    separate properties for JobHandle and FunctionName, to make the raw
