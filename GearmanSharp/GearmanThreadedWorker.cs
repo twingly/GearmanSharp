@@ -56,7 +56,7 @@ namespace Twingly.Gearman
         /// <param name="exception">The exception thrown by the job function.</param>
         /// <param name="jobAssignment">The job assignment that the job function got.</param>
         /// <returns>Return true if it should throw, or false if it should not throw after the return.</returns>
-        protected override bool OnJobException(Exception exception, JobAssignment jobAssignment)
+        protected override bool OnJobException(Exception exception, GearmanJobInfo jobAssignment)
         {
             // Don't throw the exception, as that would abort the work loop.
             return false;

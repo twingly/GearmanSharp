@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -23,10 +22,10 @@ namespace Twingly.Gearman
         private readonly DataDeserializer<TArg> _deserializer;
         private readonly GearmanWorkerProtocol _protocol;
 
-        public JobAssignment Info { get; protected set; }
+        public GearmanJobInfo Info { get; protected set; }
         public TArg FunctionArgument { get; protected set; }
 
-        public GearmanJob(GearmanWorkerProtocol protocol, JobAssignment jobAssignment,
+        public GearmanJob(GearmanWorkerProtocol protocol, GearmanJobInfo jobAssignment,
             DataDeserializer<TArg> argumentDeserializer, DataSerializer<TResult> resultSerializer)
         {
             _serializer = resultSerializer;
@@ -49,6 +48,11 @@ namespace Twingly.Gearman
         public void Fail()
         {
             _protocol.WorkFail(Info.JobHandle);
+        }
+
+        public void SetStatus(uint numerator, uint denominator)
+        {
+            _protocol.WorkStatus(Info.JobHandle, numerator, denominator);
         }
     }
 }

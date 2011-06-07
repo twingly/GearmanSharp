@@ -23,6 +23,11 @@ namespace Twingly.Gearman
         {
         }
 
+        public GearmanJobStatus GetStatus(GearmanJobRequest jobRequest)
+        {
+            return new GearmanClientProtocol(jobRequest.Connection).GetStatus(jobRequest.JobHandle);
+        }
+
         public byte[] SubmitJob(string functionName, byte[] functionArgument)
         {
             return SubmitJob(functionName, functionArgument, Guid.NewGuid().ToString(), GearmanJobPriority.Normal);
@@ -54,53 +59,61 @@ namespace Twingly.Gearman
             if (resultDeserializer == null)
                 throw new ArgumentNullException("resultDeserializer");
 
-            foreach (var connection in GetAliveConnections())
-            {
-                try
-                {
-                    var protocol = new GearmanClientProtocol(connection);
-                    var result = protocol.SubmitJob(functionName, argumentSerializer(functionArgument), uniqueId, priority);
-                    return result == null ? null : resultDeserializer(result);
-                }
-                catch (GearmanConnectionException)
-                {
-                    connection.MarkAsDead();
-                }
-            }
-
-            throw new NoServerAvailableException("Failed to submit job, no job server available");
+            var functionArgumentBytes = argumentSerializer(functionArgument); // Do this before calling SendClientCommand.
+            var result = SendClientCommand(protocol => protocol.SubmitJob(
+                functionName,
+                functionArgumentBytes,
+                uniqueId,
+                priority));
+            return result == null ? null : resultDeserializer(result);
         }
 
-        public string SubmitBackgroundJob(string functionName, byte[] functionArgument)
+        public GearmanJobRequest SubmitBackgroundJob(string functionName, byte[] functionArgument)
         {
             return SubmitBackgroundJob(functionName, functionArgument, CreateRandomUniqueId(), GearmanJobPriority.Normal);
         }
 
-        public string SubmitBackgroundJob(string functionName, byte[] functionArgument, string uniqueId, GearmanJobPriority priority)
+        public GearmanJobRequest SubmitBackgroundJob(string functionName, byte[] functionArgument, string uniqueId, GearmanJobPriority priority)
         {
             return SubmitBackgroundJob<byte[]>(functionName, functionArgument, uniqueId, GearmanJobPriority.Normal, data => (data));
         }
 
-        public string SubmitBackgroundJob<TArg>(string functionName, TArg functionArgument,
+        public GearmanJobRequest SubmitBackgroundJob<TArg>(string functionName, TArg functionArgument,
             DataSerializer<TArg> argumentSerializer)
             where TArg : class
         {
             return SubmitBackgroundJob<TArg>(functionName, functionArgument, CreateRandomUniqueId(), GearmanJobPriority.Normal, argumentSerializer);
         }
 
-        public string SubmitBackgroundJob<TArg>(string functionName, TArg functionArgument, string uniqueId, GearmanJobPriority priority,
+        public GearmanJobRequest SubmitBackgroundJob<TArg>(string functionName, TArg functionArgument, string uniqueId, GearmanJobPriority priority,
             DataSerializer<TArg> argumentSerializer)
             where TArg : class
         {
             if (argumentSerializer == null)
                 throw new ArgumentNullException("argumentSerializer");
 
+            var functionArgumentBytes = argumentSerializer(functionArgument); // Do this before calling SendClientCommand.
+            return SendClientCommand(protocol => SubmitBackgroundJob(protocol, functionName, functionArgumentBytes, uniqueId, priority));
+        }
+
+        private static GearmanJobRequest SubmitBackgroundJob(GearmanClientProtocol protocol, string functionName, byte[] functionArgument,
+            string uniqueId, GearmanJobPriority priority)
+        {
+            var jobHandle = protocol.SubmitBackgroundJob(
+                functionName,
+                functionArgument,
+                uniqueId,
+                priority);
+            return new GearmanJobRequest(protocol.Connection, jobHandle);
+        }
+
+        protected T SendClientCommand<T>(Func<GearmanClientProtocol,T> commandFunc)
+        {
             foreach (var connection in GetAliveConnections())
             {
                 try
                 {
-                    var protocol = new GearmanClientProtocol(connection);
-                    return protocol.SubmitBackgroundJob(functionName, argumentSerializer(functionArgument), uniqueId, priority);
+                    return commandFunc(new GearmanClientProtocol(connection));
                 }
                 catch (GearmanConnectionException)
                 {
@@ -108,7 +121,7 @@ namespace Twingly.Gearman
                 }
             }
 
-            throw new NoServerAvailableException("Failed to submit background job, no job server available");
+            throw new NoServerAvailableException("Failed to send command, no job server available"); 
         }
         
         private static string CreateRandomUniqueId()

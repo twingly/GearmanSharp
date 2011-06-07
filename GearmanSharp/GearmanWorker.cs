@@ -121,7 +121,7 @@ namespace Twingly.Gearman
                 // from the server because we don't want the job to be removed. See general exception
                 // catch for more information.
                 connection.Disconnect();
-                var shouldThrow = OnJobException(functionException.InnerException, functionException.JobAssignment);
+                var shouldThrow = OnJobException(functionException.InnerException, functionException.JobInfo);
                 if (shouldThrow)
                 {
                     throw;
@@ -153,7 +153,7 @@ namespace Twingly.Gearman
         /// <param name="exception">The exception thrown by the job function.</param>
         /// <param name="jobAssignment">The job assignment that the job function got.</param>
         /// <returns>Return true if it should throw, or false if it should not throw after the return.</returns>
-        protected virtual bool OnJobException(Exception exception, JobAssignment jobAssignment)
+        protected virtual bool OnJobException(Exception exception, GearmanJobInfo jobAssignment)
         {
             return true;
         }
@@ -198,7 +198,7 @@ namespace Twingly.Gearman
             var jobConstructorTypes = new Type[4]
             {
                 typeof(GearmanWorkerProtocol),
-                typeof(JobAssignment),
+                typeof(GearmanJobInfo),
                 typeof(DataDeserializer<TArg>),
                 typeof(DataSerializer<TResult>)
             };
@@ -219,7 +219,7 @@ namespace Twingly.Gearman
             });
         }
 
-        private void CallFunction(GearmanWorkerProtocol protocol, JobAssignment jobAssignment)
+        private void CallFunction(GearmanWorkerProtocol protocol, GearmanJobInfo jobAssignment)
         {
             var functionInformation = _functionInformation[jobAssignment.FunctionName];
 

@@ -13,10 +13,23 @@ namespace Twingly.Gearman.Tests
         public void can_submit_backgroundjob()
         {
             var client = new GearmanClient();
-            client.AddServer("127.0.0.1");
-            var handle = client.SubmitBackgroundJob("reverse", Encoding.ASCII.GetBytes("Hello World"));
+            client.AddServer(Helpers.TestServerHost, Helpers.TestServerPort);
+            var jobRequest = client.SubmitBackgroundJob("reverse", Encoding.ASCII.GetBytes("Hello World"));
 
-            Assert.IsNotNull(handle);
+            Assert.IsNotNull(jobRequest);
+            Assert.IsNotNull(jobRequest.JobHandle);
+        }
+
+        [Test]
+        public void can_fetch_jobstatus()
+        {
+            var client = new GearmanClient();
+            client.AddServer(Helpers.TestServerHost, Helpers.TestServerPort);
+            var jobRequest = client.SubmitBackgroundJob("reverse", Encoding.ASCII.GetBytes("Hello World"));
+            var jobStatus = client.GetStatus(jobRequest);
+
+            Assert.IsNotNull(jobStatus);
+            // We can't safely assert that jobStatus.IsKnown is true, but it most likely should be.
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Newtonsoft.Json.Linq;
 using Twingly.Gearman;
+using System.Threading;
 
 namespace ExampleClient
 {
@@ -12,12 +13,12 @@ namespace ExampleClient
         static void Main(string[] args)
         {
             var client = new GearmanClient();
-            var host = "10.21.1.201";
+            var host = "smeagol";
             client.AddServer(host, 4730);
             client.AddServer(host, 4731);
 
-            CreateBackgroundJobs(client, 100);
-            CreateJobs(client, 100);
+            CreateBackgroundJobs(client, 10);
+            //CreateJobs(client, 100);
         }
 
         private static void CreateJobs(GearmanClient client, int jobCount)
@@ -34,8 +35,16 @@ namespace ExampleClient
         {
             for (int i = 0; i < jobCount; i++)
             {
-                var handle = client.SubmitBackgroundJob("reverse", Encoding.UTF8.GetBytes(String.Format("{0}: Hello World", i)));
-                Console.WriteLine("Submitted background job. Handle: {0}", handle);
+                var request = client.SubmitBackgroundJob("reverse_with_status", Encoding.UTF8.GetBytes(String.Format("{0}: Hello World", i)));
+
+                GearmanJobStatus jobStatus;
+                do
+                {
+                    jobStatus = client.GetStatus(request);
+                }
+                while (jobStatus.IsKnown && jobStatus.IsRunning);
+
+                Console.WriteLine("Submitted background job. Handle: {0}", request.JobHandle);
             }
         }
     }

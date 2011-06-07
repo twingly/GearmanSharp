@@ -11,23 +11,23 @@ namespace Twingly.Gearman.Exceptions
     /// </summary>
     public class GearmanFunctionInternalException : GearmanException
     {
-        public JobAssignment JobAssignment { get; set; }
+        public GearmanJobInfo JobInfo { get; set; }
 
-        public GearmanFunctionInternalException(JobAssignment jobAssignment)
+        public GearmanFunctionInternalException(GearmanJobInfo jobAssignment)
         {
-            JobAssignment = jobAssignment;
+            JobInfo = jobAssignment;
         }
 
-        public GearmanFunctionInternalException(JobAssignment jobAssignment, string message)
+        public GearmanFunctionInternalException(GearmanJobInfo jobAssignment, string message)
             : base(message)
         {
-            JobAssignment = jobAssignment;
+            JobInfo = jobAssignment;
         }
 
-        public GearmanFunctionInternalException(JobAssignment jobAssignment, string message, Exception innerException)
+        public GearmanFunctionInternalException(GearmanJobInfo jobAssignment, string message, Exception innerException)
             : base(message, innerException)
         {
-            JobAssignment = jobAssignment;
+            JobInfo = jobAssignment;
         }
 
         protected GearmanFunctionInternalException(SerializationInfo info, StreamingContext context)

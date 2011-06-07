@@ -58,9 +58,12 @@
     <Compile Include="GearmanClientTests.cs" />
     <Compile Include="GearmanConnectionTests.cs" />
     <Compile Include="GearmanWorkerTests.cs" />
+    <Compile Include="Helpers.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UtilTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="TestConfiguration.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

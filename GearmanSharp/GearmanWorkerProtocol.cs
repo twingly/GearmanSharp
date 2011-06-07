@@ -1,55 +1,48 @@
+using System;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text;
 using Twingly.Gearman.Exceptions;
 using Twingly.Gearman.Packets;
 
 namespace Twingly.Gearman
 {
-    public class GearmanWorkerProtocol
+    public class GearmanWorkerProtocol : GearmanProtocol
     {
-        private readonly IGearmanConnection _connection;
-
         public GearmanWorkerProtocol(IGearmanConnection connection)
+            : base(connection)
         {
-            _connection = connection;
         }
 
         public void SetClientId(string clientId)
         {
-            _connection.SendPacket(new SetClientIdRequest(clientId));
+            Connection.SendPacket(PackRequest(PacketType.SET_CLIENT_ID, clientId));
         }
 
         public void CanDo(string functionName)
         {
-            _connection.SendPacket(new CanDoRequest(functionName));
+            Connection.SendPacket(PackRequest(PacketType.CAN_DO, functionName));
         }
 
-        public JobAssignment GrabJob()
+        public GearmanJobInfo GrabJob()
         {
-            _connection.SendPacket(new GrabJobRequest());
+            Connection.SendPacket(PackRequest(PacketType.GRAB_JOB));
 
             IResponsePacket response;
             do
             {
-                response = _connection.GetNextPacket(); // Throw away all NOOPs.
+                response = Connection.GetNextPacket(); // Throw away all NOOPs.
             } while (response.Type == PacketType.NOOP);
 
             if (response.Type == PacketType.ERROR)
             {
-                var errorPacket = (ErrorResponse)response;
-                throw new GearmanServerException(errorPacket.ErrorCode, errorPacket.ErrorText);
+                throw UnpackErrorReponse(response);
             }
 
-            JobAssignment job;
+            GearmanJobInfo job;
             if (response.Type == PacketType.JOB_ASSIGN)
             {
-                var jobAssign = (IJobAssignResponse)response;
-                job = new JobAssignment
-                      {
-                          JobHandle = jobAssign.JobHandle,
-                          FunctionName = jobAssign.FunctionName,
-                          FunctionArgument = jobAssign.FunctionArgument
-                      };
+                job = UnpackJobAssignResponse(response);
             }
             else if (response.Type == PacketType.NO_JOB)
             {
@@ -70,12 +63,18 @@ namespace Twingly.Gearman
 
         public void WorkComplete(string jobHandle, byte[] result)
         {
-            _connection.SendPacket(new WorkCompleteRequest(jobHandle, result ?? new byte[0]));
+            Connection.SendPacket(PackRequest(PacketType.WORK_COMPLETE, jobHandle, result ?? new byte[0]));
         }
 
         public void WorkFail(string jobHandle)
         {
-            _connection.SendPacket(new WorkFailRequest(jobHandle));
+            Connection.SendPacket(PackRequest(PacketType.WORK_FAIL, jobHandle));
+        }
+
+        public void WorkStatus(string jobHandle, uint numerator, uint denominator)
+        {
+            // The numerator and denominator should be sent as text, not binary.
+            Connection.SendPacket(PackRequest(PacketType.WORK_STATUS, jobHandle, numerator.ToString(), denominator.ToString()));
         }
     }
 }

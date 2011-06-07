@@ -7,32 +7,37 @@ namespace Twingly.Gearman
 {
     public static class Util
     {
+
+
         /// <summary>
-        /// Concatenates a number of byte arrays with \0 between them.
+        /// Splits a byte array on \0. Works as String.Split
         /// </summary>
-        public static byte[] JoinByteArraysForData(params byte[][] data)
+        public static byte[][] SplitArray(byte[] arr)
         {
-            int len = (data.Length == 0 ? 0 : data.Length - 1);
-            foreach (var arr in data)
-            {
-                len += arr.Length;
-            }
+            const byte splitByte = 0;
 
-            var result = new byte[len];
-            var offset = 0;
-            bool first = true;
-            foreach (var arr in data)
+            var segments = new List<byte[]>();
+            int lastPos = 0;
+            while (true)
             {
-                // Add \0 before all values, except for the first. (i.e. append it for all but the last)
-                if (first)
-                    first = false;
+                var pos = Array.IndexOf(arr, splitByte, lastPos);
+                if (pos == -1)
+                {
+                    pos = arr.Length;
+                }
+
+                var len = pos - lastPos;
+                var segment = new byte[len];
+                Array.Copy(arr, lastPos, segment, 0, len);
+                segments.Add(segment);
+
+                if (pos < arr.Length)
+                    lastPos = pos + 1; // account for the byte we split on
                 else
-                    result[offset++] = 0;
-                Array.Copy(arr, 0, result, offset, arr.Length);
-                offset += arr.Length;
+                    break;
             }
 
-            return result;
+            return segments.ToArray();
         }
     }
 }

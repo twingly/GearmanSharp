@@ -135,7 +135,7 @@ namespace Twingly.Gearman
                     } while (bytesRead < packetSize);
                 }
 
-                return ResponsePacket.Create(packetType, packetData);
+                return new ResponsePacket(packetType, packetData);
             }
             catch (Exception e)
             {

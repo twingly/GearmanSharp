@@ -5,7 +5,7 @@ namespace Twingly.Gearman
 {
     public interface IGearmanJob<TArg, TResult>
     {
-        JobAssignment Info { get; }
+        GearmanJobInfo Info { get; }
 
         /// <summary>
         /// The deserialized function argument.
@@ -22,5 +22,7 @@ namespace Twingly.Gearman
         //
         //void Exception();
         //void Exception(byte[] exception);
+        
+        void SetStatus(uint numerator, uint denominator);
     }
 }

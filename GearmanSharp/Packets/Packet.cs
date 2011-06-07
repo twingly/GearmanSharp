@@ -8,15 +8,17 @@ namespace Twingly.Gearman.Packets
 {
     public abstract class Packet
     {
-        public PacketType Type { get; protected set; }
+        private readonly byte[] _packetData;
 
-        protected Packet(PacketType packetType)
+        public PacketType Type { get; protected set; }
+        
+        protected Packet(PacketType packetType, byte[] packetData)
         {
             Type = packetType;
+            _packetData = packetData;
         }
 
         public abstract byte[] GetMagic();
-        public abstract byte[] GetData();
 
         private byte[] GetHeader(int dataSize)
         {
@@ -26,7 +28,12 @@ namespace Twingly.Gearman.Packets
             Array.Copy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder(dataSize)), 0, header, 8, 4);
             return header;
         }
-        
+
+        public virtual byte[] GetData()
+        {
+            return _packetData;
+        }
+
         public virtual byte[] ToByteArray()
         {
             var data = GetData();

@@ -11,8 +11,8 @@ namespace Twingly.Gearman.Tests
     [TestFixture]
     public class GearmanConnectionTests
     {
-        private string _gearmanHost = "127.0.0.1";
-        private int _gearmanPort = 4730;
+        private string _gearmanHost = Helpers.TestServerHost;
+        private int _gearmanPort = Helpers.TestServerPort;
 
         [Test]
         public void submitting_background_job_should_generate_job_created_response()
@@ -20,16 +20,15 @@ namespace Twingly.Gearman.Tests
             var connection = new GearmanConnection(_gearmanHost, _gearmanPort);
             connection.Connect();
 
+            var jobReq = GearmanProtocol.PackRequest(PacketType.SUBMIT_JOB_BG, "reverse", Guid.NewGuid().ToString(), "Hello World");
 
-            var jobReq = new SubmitJobRequest("reverse", Encoding.ASCII.GetBytes("Hello World"),
-                                              true, Guid.NewGuid().ToString(), GearmanJobPriority.Normal);
             connection.SendPacket(jobReq);
             var response = connection.GetNextPacket();
             connection.Disconnect();
 
 
-            Assert.IsInstanceOfType(typeof(JobCreatedResponse), response);
-            Assert.IsNotNull(((JobCreatedResponse)response).JobHandle);
+            Assert.AreEqual(PacketType.JOB_CREATED, response.Type);
+            Assert.IsNotNull(GearmanProtocol.UnpackJobCreatedResponse(response));
         }
 
         [Test]
@@ -37,9 +36,8 @@ namespace Twingly.Gearman.Tests
         {
             var connection = new GearmanConnection(_gearmanHost, _gearmanPort);
             connection.Connect();
-            
 
-            connection.SendPacket(new CanDoRequest("reverse"));
+            connection.SendPacket(GearmanProtocol.PackRequest(PacketType.CAN_DO, "reverse"));
             // Server won't send any response to CanDo.
             connection.Disconnect();
 
@@ -54,15 +52,15 @@ namespace Twingly.Gearman.Tests
             connection.Connect();
             // tell the server which jobs we can receive, but randomize a function name.
             // we want to receive the NoJobResponse
-            connection.SendPacket(new CanDoRequest(Guid.NewGuid().ToString()));
+            connection.SendPacket(GearmanProtocol.PackRequest(PacketType.CAN_DO, Guid.NewGuid().ToString()));
 
-            
-            connection.SendPacket(new GrabJobRequest());
+
+            connection.SendPacket(new RequestPacket(PacketType.GRAB_JOB));
             var response = connection.GetNextPacket();
             connection.Disconnect();
 
 
-            Assert.IsInstanceOfType(typeof(NoJobResponse), response);
+            Assert.AreEqual(PacketType.NO_JOB, response.Type);
         }
 
         [Test]
@@ -73,24 +71,26 @@ namespace Twingly.Gearman.Tests
             // randomize a function name and argument, so it won't collide with other functions and we can assert on them
             var functionName = Guid.NewGuid().ToString();
             var functionArgument = Guid.NewGuid().ToString();
-            var jobReq = new SubmitJobRequest(functionName, Encoding.ASCII.GetBytes(functionArgument),
-                                              true, Guid.NewGuid().ToString(), GearmanJobPriority.Normal);
+            var jobReq = GearmanProtocol.PackRequest(PacketType.SUBMIT_JOB_BG, functionName, Guid.NewGuid().ToString(), functionArgument);
+
             connection.SendPacket(jobReq);
-            var jobCreatedResponse = (JobCreatedResponse) connection.GetNextPacket();
-            Debug.WriteLine(String.Format("Created job with handle '{0}' for function: {1}", jobCreatedResponse.JobHandle, functionName));
-            connection.SendPacket(new CanDoRequest(functionName));
+            var jobCreatedResponse = connection.GetNextPacket();
+            var jobHandle = GearmanProtocol.UnpackJobCreatedResponse(jobCreatedResponse);
+
+            Debug.WriteLine(String.Format("Created job with handle '{0}' for function: {1}", jobHandle, functionName));
+            connection.SendPacket(GearmanProtocol.PackRequest(PacketType.CAN_DO, functionName));
 
 
-            connection.SendPacket(new GrabJobRequest());
+            connection.SendPacket(new RequestPacket(PacketType.GRAB_JOB));
             var response = connection.GetNextPacket();
             connection.Disconnect();
 
 
-            Assert.IsInstanceOfType(typeof(JobAssignResponse), response);
-            var jobAssignResponse = (JobAssignResponse) response;
-            Assert.AreEqual(jobCreatedResponse.JobHandle, jobAssignResponse.JobHandle);
-            Assert.AreEqual(functionName, jobAssignResponse.FunctionName);
-            Assert.AreEqual(functionArgument, Encoding.ASCII.GetString(jobAssignResponse.FunctionArgument));
+            Assert.AreEqual(PacketType.JOB_ASSIGN, response.Type);
+            var jobAssignment = GearmanProtocol.UnpackJobAssignResponse(response);
+            Assert.AreEqual(jobHandle, jobAssignment.JobHandle);
+            Assert.AreEqual(functionName, jobAssignment.FunctionName);
+            Assert.AreEqual(functionArgument, Encoding.ASCII.GetString(jobAssignment.FunctionArgument));
         }
 
         [Test]
@@ -101,17 +101,18 @@ namespace Twingly.Gearman.Tests
             // randomize a function name and argument, so it won't collide with other functions and we can assert on them
             var functionName = Guid.NewGuid().ToString();
             var functionArgument = Guid.NewGuid().ToString();
-            var jobReq = new SubmitJobRequest(functionName, Encoding.ASCII.GetBytes(functionArgument),
-                                              true, Guid.NewGuid().ToString(), GearmanJobPriority.Normal);
+            var jobReq = GearmanProtocol.PackRequest(PacketType.SUBMIT_JOB_BG, functionName, Guid.NewGuid().ToString(), functionArgument);
+
             connection.SendPacket(jobReq);
-            var jobCreatedResponse = (JobCreatedResponse)connection.GetNextPacket();
-            Debug.WriteLine(String.Format("Created job with handle '{0}' for function: {1}", jobCreatedResponse.JobHandle, functionName));
-            connection.SendPacket(new CanDoRequest(functionName));
-            connection.SendPacket(new GrabJobRequest());
-            var jobAssignResponse = (JobAssignResponse)connection.GetNextPacket();
+            var jobCreatedResponse = connection.GetNextPacket();
+            var jobHandle = GearmanProtocol.UnpackJobCreatedResponse(jobCreatedResponse);
+            Debug.WriteLine(String.Format("Created job with handle '{0}' for function: {1}", jobHandle, functionName));
+            connection.SendPacket(GearmanProtocol.PackRequest(PacketType.CAN_DO, functionName));
+            connection.SendPacket(new RequestPacket(PacketType.GRAB_JOB));
+            var jobAssignment = GearmanProtocol.UnpackJobAssignResponse(connection.GetNextPacket());
 
             // Just return the argument as result
-            var workCompleteRequest = new WorkCompleteRequest(jobAssignResponse.JobHandle, jobAssignResponse.FunctionArgument);
+            var workCompleteRequest = GearmanProtocol.PackRequest(PacketType.WORK_COMPLETE, jobAssignment.JobHandle, jobAssignment.FunctionArgument);
             connection.SendPacket(workCompleteRequest);
             
 
@@ -119,10 +120,10 @@ namespace Twingly.Gearman.Tests
 
 
             // What can we assert here? That we won't get any more jobs perhaps?
-            connection.SendPacket(new GrabJobRequest());
+            connection.SendPacket(new RequestPacket(PacketType.GRAB_JOB));
             var response = connection.GetNextPacket();
             connection.Disconnect();
-            Assert.IsInstanceOfType(typeof(NoJobResponse), response);
+            Assert.AreEqual(PacketType.NO_JOB, response.Type);
         }
     }
 }
