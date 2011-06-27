@@ -1,3 +1,7 @@
+v0.3.2, ??? -- ???
+ * Added SignalWorkerThreadToStop and JoinWorkerThread methods to
+   GearmanThreadedWorker, to allow better handling of the worker
+   thread.
 v0.3.1, 2011-06-27 -- Stopped throwing exceptions from the thread.
  * Stopped throwing exceptions from the worker thread, which could
    crash a service.

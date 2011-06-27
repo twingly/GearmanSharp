@@ -40,10 +40,29 @@ namespace Twingly.Gearman
             _workLoopThread.Start();
         }
 
+        /// <summary>
+        /// Tells the worker thread to stop and then joins the thread.
+        /// </summary>
         public void StopWorkLoop()
+        {
+            SignalWorkerThreadToStop();
+            JoinWorkerThread();
+        }
+        
+        /// <summary>
+        /// Tells the worker thread to stop and then joins the thread.
+        /// </summary>
+        public void SignalWorkerThreadToStop()
         {
             ContinueWorking = false;
             _resetEvent.Set();
+        }
+
+        /// <summary>
+        /// Joins the worker thread, if it's alive.
+        /// </summary>
+        public void JoinWorkerThread()
+        {
             if (_workLoopThread.IsAlive)
             {
                 _workLoopThread.Join();
