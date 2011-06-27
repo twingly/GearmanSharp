@@ -1,3 +1,6 @@
+v0.3.1, 2011-06-27 -- Stopped throwing exceptions from the thread.
+ * Stopped throwing exceptions from the worker thread, which could
+   crash a service.
 v0.3.0, 2011-06-07 -- Status support. Breaking API improvements.
  * Added support for GET_STATUS, STATUS_RES and WORK_STATUS packets.
  * GearmanClient.SubmitBackgroundJob now returns an instance of
