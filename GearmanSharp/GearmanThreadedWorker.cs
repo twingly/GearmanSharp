@@ -101,8 +101,8 @@ namespace Twingly.Gearman
                 }
                 catch (Exception)
                 {
+                    // TODO: Logging framework?
                     ContinueWorking = false;
-                    throw;
                 }
             }
         }
