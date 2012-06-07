@@ -8,7 +8,7 @@ using Twingly.Gearman.Exceptions;
 
 namespace Twingly.Gearman
 {
-    public abstract class GearmanConnectionManager
+    public abstract class GearmanConnectionManager : IDisposable
     {
         private const int _DEFAULT_PORT = 4730;
 
@@ -59,6 +59,18 @@ namespace Twingly.Gearman
             ParseConfiguration(clusterConfiguration);
         }
 
+        public void Dispose()
+        {
+            // http://codecrafter.blogspot.se/2010/01/better-idisposable-pattern.html
+            CleanUpManagedResources();
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void CleanUpManagedResources()
+        {
+            DisconnectAll();
+        }
+
         private void ParseConfiguration(ClusterConfigurationElement cluster)
         {
             foreach (ServerConfigurationElement server in cluster.Servers)
@@ -81,7 +93,10 @@ namespace Twingly.Gearman
         {
             foreach (var connection in _connections)
             {
-                connection.Disconnect();
+                if (connection != null)
+                {
+                    connection.Disconnect();
+                }
             }
         }
 

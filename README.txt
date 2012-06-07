@@ -30,19 +30,21 @@ http://github.com/twingly/GearmanSharp/blob/master/GearmanSharp/Examples/Example
 * Client examples
 
     // Create a simple client and add "localhost" as server
-    var client = new GearmanClient();
-    client.AddServer("localhost");
+    using (var client = new GearmanClient())
+    {
+        client.AddServer("localhost");
 
-    // You can submit a simple background job
-    client.SubmitBackgroundJob("reverse",
-        Encoding.ASCII.GetBytes("helloworld"));
+        // You can submit a simple background job
+        client.SubmitBackgroundJob("reverse",
+            Encoding.ASCII.GetBytes("helloworld"));
 
-    // And you can submit a more advanced job
-    var oembeds = client.SubmitJob<IList<string>, IList<OEmbed>>(
-        "GetOEmbeds",
-        new List<string> { "http://www.youtube.com/watch?v=abc123456" },
-        Serializers.JsonSerialize<IList<string>>,
-        Serializers.JsonDeserialize<IList<OEmbed>>);
+        // And you can submit a more advanced job
+        var oembeds = client.SubmitJob<IList<string>, IList<OEmbed>>(
+            "GetOEmbeds",
+            new List<string> { "http://www.youtube.com/watch?v=abc123456" },
+            Serializers.JsonSerialize<IList<string>>,
+            Serializers.JsonDeserialize<IList<OEmbed>>);
+    }
 
 
 

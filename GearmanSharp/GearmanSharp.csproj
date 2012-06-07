@@ -74,6 +74,7 @@
     <Compile Include="Exceptions\NoServerAvailableException.cs" />
     <Compile Include="GearmanThreadedWorker.cs" />
     <Compile Include="GearmanWorkerProtocol.cs" />
+    <Compile Include="IGearmanClient.cs" />
     <Compile Include="ISocket.cs" />
     <Compile Include="GearmanJobInfo.cs" />
     <Compile Include="GearmanJobStatus.cs" />

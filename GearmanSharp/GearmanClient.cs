@@ -7,7 +7,7 @@ using Twingly.Gearman.Exceptions;
 
 namespace Twingly.Gearman
 {
-    public class GearmanClient : GearmanConnectionManager
+    public class GearmanClient : GearmanConnectionManager, IGearmanClient
     {
         public GearmanClient()
         {
