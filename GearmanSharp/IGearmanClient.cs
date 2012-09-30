@@ -2,7 +2,7 @@ using System;
 
 namespace Twingly.Gearman
 {
-    public interface IGearmanClient : IDisposable
+    public interface IGearmanClient : IDisposable, IGearmanClientEventHandler
     {
         GearmanJobStatus GetStatus(GearmanJobRequest jobRequest);
 

@@ -17,8 +17,14 @@ namespace ExampleClient
             client.AddServer(host, 4730);
             client.AddServer(host, 4731);
 
-            CreateBackgroundJobs(client, 10);
-            //CreateJobs(client, 100);
+            client.JobCompleted += onComplete;
+
+            //CreateBackgroundJobs(client, 10);
+            CreateJobs(client, 100);
+        }
+        
+        private static void onComplete(Object e, GearmanJobData data) {
+            Console.WriteLine("Job {0} complete!  Result: {1}", data.JobHandle, Encoding.UTF8.GetString(data.Data));
         }
 
         private static void CreateJobs(GearmanClient client, int jobCount)
