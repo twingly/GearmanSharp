@@ -8,7 +8,7 @@ using Twingly.Gearman.Packets;
 
 namespace Twingly.Gearman
 {
-    public class GearmanJobData
+    public class GearmanJobData : EventArgs
     {
         public string JobHandle { get; protected set; }
         public byte[] Data { get; protected set; }
@@ -20,8 +20,16 @@ namespace Twingly.Gearman
         }
     }
 
-    public class GearmanClientProtocol : GearmanProtocol
+    public class GearmanClientProtocol : GearmanProtocol, IGearmanClientEventHandler
     {
+        public event EventHandler JobCreated;
+        public event EventHandler<GearmanJobData> JobCompleted;
+        public event EventHandler JobFailed;
+        public event EventHandler<GearmanJobData> JobData;
+        public event EventHandler<GearmanJobData> JobWarning;
+        public event EventHandler<GearmanJobStatus> JobStatus;
+        public event EventHandler<GearmanJobData> JobException;
+
         public GearmanClientProtocol(IGearmanConnection connection)
             : base(connection)
         {
@@ -47,7 +55,9 @@ namespace Twingly.Gearman
             switch (response.Type)
             {
                 case PacketType.JOB_CREATED:
-                    return UnpackJobCreatedResponse(response);
+                    var packet = UnpackJobCreatedResponse(response);
+                    onJobCreated(new EventArgs());
+                    return packet;
                 case PacketType.ERROR:
                     throw UnpackErrorReponse(response);
                 default:
@@ -85,21 +95,31 @@ namespace Twingly.Gearman
                 switch (response.Type)
                 {
                     case PacketType.WORK_FAIL:
-                        // Do what? Return null?  (should not throw)
+                        onJobFailed(new EventArgs());
                         return null;
                     case PacketType.WORK_COMPLETE:
                         var workComplete = UnpackWorkCompleteResponse(response);
+                        onJobCompleted(workComplete);
                         result.AddRange(workComplete.Data);
                         workDone = true;
                         break;
                     case PacketType.WORK_DATA:
                         var workData = UnpackWorkDataResponse(response);
+                        onJobData(workData);
                         result.AddRange(workData.Data);
                         break;
                     case PacketType.WORK_WARNING:
+						// Protocol specs say treat this as a DATA packet, so we do
+                        var workWarning = UnpackWorkDataResponse(response);
+                        onJobWarning(workWarning);
+                        break;
                     case PacketType.WORK_STATUS:
+                        var workStatus = UnpackStatusResponse(response);
+                        onJobStatus(workStatus);
+                        break;
                     case PacketType.WORK_EXCEPTION:
-                        // TODO: Do what?
+                        var workException = UnpackWorkExceptionResponse(response);
+                        onJobException(workException);
                         break;
                     case PacketType.ERROR:
                         throw UnpackErrorReponse(response);
@@ -120,10 +140,74 @@ namespace Twingly.Gearman
             {
                 case PacketType.STATUS_RES:
                     return UnpackStatusResponse(response);
+                    // Raise the event?
                 case PacketType.ERROR:
                     throw UnpackErrorReponse(response);
                 default:
                     throw new GearmanApiException("Got unknown packet from server");
+            }
+        }
+
+        protected void onJobCreated(EventArgs e)
+        {
+            EventHandler handler = JobCreated;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
+        }
+
+        protected void onJobCompleted(GearmanJobData e)
+        {
+            EventHandler<GearmanJobData> handler = JobCompleted;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
+        }
+
+        protected void onJobFailed(EventArgs e)
+        {
+            EventHandler handler = JobFailed;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
+        }
+
+        protected void onJobData(GearmanJobData e)
+        {
+            EventHandler<GearmanJobData> handler = JobData;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
+        }
+
+        protected void onJobWarning(GearmanJobData e)
+        {
+            EventHandler<GearmanJobData> handler = JobWarning;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
+        }
+
+        protected void onJobStatus(GearmanJobStatus e)
+        {
+            EventHandler<GearmanJobStatus> handler = JobStatus;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
+        }
+
+        protected void onJobException(GearmanJobData e)
+        {
+            EventHandler<GearmanJobData> handler = JobException;
+            if (handler != null)
+            {
+                handler(this, e);
             }
         }
     }

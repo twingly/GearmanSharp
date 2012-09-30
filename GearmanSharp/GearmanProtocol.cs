@@ -125,6 +125,10 @@ namespace Twingly.Gearman
             return UnpackWorkDataResponse(response);
         }
 
+        public static GearmanJobData UnpackWorkExceptionResponse(IResponsePacket response)
+        {
+            return UnpackWorkDataResponse(response);
+        }
         /// <summary>
         /// Concatenates a number of byte arrays with \0 between them.
         /// </summary>

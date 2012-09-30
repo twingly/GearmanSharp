@@ -1,9 +1,10 @@
+using System;
 using System.Linq;
 using System.Linq.Expressions;
 
 namespace Twingly.Gearman
 {
-    public class GearmanJobStatus
+    public class GearmanJobStatus : EventArgs
     {
         public string JobHandle { get; protected set; }
         public bool IsKnown { get; protected set; }

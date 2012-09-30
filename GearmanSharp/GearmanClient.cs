@@ -7,8 +7,16 @@ using Twingly.Gearman.Exceptions;
 
 namespace Twingly.Gearman
 {
-    public class GearmanClient : GearmanConnectionManager, IGearmanClient
+    public class GearmanClient : GearmanConnectionManager, IGearmanClient, IGearmanClientEventHandler
     {
+        public event EventHandler JobCreated;
+        public event EventHandler<GearmanJobData> JobCompleted;
+        public event EventHandler JobFailed;
+        public event EventHandler<GearmanJobData> JobData;
+        public event EventHandler<GearmanJobData> JobWarning;
+        public event EventHandler<GearmanJobStatus> JobStatus;
+        public event EventHandler<GearmanJobData> JobException;
+
         public GearmanClient()
         {
         }
@@ -113,7 +121,16 @@ namespace Twingly.Gearman
             {
                 try
                 {
-                    return commandFunc(new GearmanClientProtocol(connection));
+                    GearmanClientProtocol proto = new GearmanClientProtocol(connection);
+                    // Pass through all events
+                    proto.JobCompleted += (o, e) => onJobCompleted(e);
+                    proto.JobCreated += (o, e) => onJobCreated(e);
+                    proto.JobData += (o, e) => onJobData(e);
+                    proto.JobException += (o, e) => onJobException(e);
+                    proto.JobFailed += (o, e) => onJobFailed(e);
+                    proto.JobStatus += (o, e) => onJobStatus(e);
+                    proto.JobWarning += (o, e) => onJobWarning(e);
+                    return commandFunc(proto);
                 }
                 catch (GearmanConnectionException)
                 {
@@ -130,6 +147,68 @@ namespace Twingly.Gearman
             // We only really need something random here, so it's not that important that we use Guid really.
             // http://msdn.microsoft.com/en-us/library/97af8hh4.aspx
             return Guid.NewGuid().ToString("N");
+        }
+
+        protected void onJobCreated(EventArgs e)
+        {
+            EventHandler handler = JobCreated;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
+        }
+
+        protected void onJobCompleted(GearmanJobData e) {
+            EventHandler<GearmanJobData> handler = JobCompleted;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
+        }
+
+        protected void onJobFailed(EventArgs e)
+        {
+            EventHandler handler = JobFailed;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
+        }
+
+        protected void onJobData(GearmanJobData e)
+        {
+            EventHandler<GearmanJobData> handler = JobData;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
+        }
+
+        protected void onJobWarning(GearmanJobData e)
+        {
+            EventHandler<GearmanJobData> handler = JobWarning;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
+        }
+
+        protected void onJobStatus(GearmanJobStatus e)
+        {
+            EventHandler<GearmanJobStatus> handler = JobStatus;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
+        }
+
+        protected void onJobException(GearmanJobData e)
+        {
+            EventHandler<GearmanJobData> handler = JobException;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
         }
     }
 }
