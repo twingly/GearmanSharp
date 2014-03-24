@@ -5,3 +5,5 @@ _ReSharper.*/
 *.suo
 *.sln.cache
 *.user
+packages/
+Dist/
