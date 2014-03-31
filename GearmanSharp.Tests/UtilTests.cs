@@ -58,7 +58,7 @@ namespace Twingly.Gearman.Tests
         }
 
         [Test]
-        [ExpectedException(ExceptionType = typeof(ArgumentNullException))]
+        [ExpectedException(typeof(ArgumentNullException))]
         public void split_array_throws_if_argument_is_null()
         {
             var arrs = Util.SplitArray(null);
