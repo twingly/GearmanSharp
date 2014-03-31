@@ -24,4 +24,5 @@ properties {
 	$nuget.source = @($nuget.sources | ?{ $_ -ne "" -and $_ -ne $null }) -join ";"
 	$nuget.output = $base.output
 	$nuget.version = "{0}" -f $build.version
+	$nuget.packages = (Join-Path $source.dir "packages")
 }

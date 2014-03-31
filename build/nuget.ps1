@@ -1,3 +1,18 @@
+Task Nuget-Bootstrap {
+	$env:EnableNuGetPackageRestore = "true"
+	Get-ChildItem $source.dir -Recurse -Filter packages.config |
+		%{ Nuget-Install $_.FullName }
+}
+
+function Nuget-Install {
+	[CmdletBinding()]
+	param(
+		[Parameter(Position=0,Mandatory=1)]$file
+	)
+
+	exec { & $nuget.bin install $file -Source $nuget.source -OutputDirectory $nuget.packages }
+}
+
 
 Task Nuget-Init {
 	New-Item $nuget.output -Type directory -Force | Out-Null
@@ -39,6 +54,8 @@ function Nuget-Push {
 		[Parameter(Position=0,Mandatory=1)]$file
 	)
 	
-	Write-Output "Pushing $file key: $nugetKey"
-	#exec { & $nuget.bin push $file $nugetKey -Source $nuget.pushsource }
+	if ($nugetKey -ne "") {	
+		Write-Output "Pushing $file key: $nugetKey"	
+		exec { & $nuget.bin push $file $nugetKey -Source $nuget.pushsource }
+	}
 }
